@@ -129,6 +129,13 @@ async def extract_graph(
             entity_dfs.append(pd.DataFrame(result[0]))
             relationship_dfs.append(pd.DataFrame(result[1]))
 
+    if entity_dfs:
+        entities_df = pd.concat(entity_dfs, ignore_index=True)
+        entities_df.to_parquet("output/non_merged_entities.parquet")
+    if relationship_dfs:
+        relationships_df = pd.concat(relationship_dfs, ignore_index=True)
+        relationships_df.to_parquet("output/non_merged_relationships.parquet")
+
     entities = _merge_entities(entity_dfs)
     relationships = _merge_relationships(relationship_dfs)
 

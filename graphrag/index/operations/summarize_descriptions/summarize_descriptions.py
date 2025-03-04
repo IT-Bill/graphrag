@@ -89,7 +89,7 @@ async def summarize_descriptions(
 
         node_futures = [
             do_summarize_descriptions(
-                str(row.title),  # type: ignore
+                (str(row.title), str(row.type)),  # type: ignore
                 sorted(set(row.description)),  # type: ignore
                 ticker,
                 semaphore,
@@ -101,7 +101,8 @@ async def summarize_descriptions(
 
         node_descriptions = [
             {
-                "title": result.id,
+                "title": result.id[0],
+                "type": result.id[1],
                 "description": result.description,
             }
             for result in node_results
