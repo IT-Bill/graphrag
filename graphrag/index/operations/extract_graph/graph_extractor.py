@@ -213,9 +213,10 @@ class GraphExtractor:
                     entity_name = clean_str(record_attributes[1].upper())
                     entity_type = clean_str(record_attributes[2].upper())
                     entity_description = clean_str(record_attributes[3])
+                    entity_identifier = f"{entity_name}...{entity_type}"
 
-                    if entity_name in graph.nodes():
-                        node = graph.nodes[entity_name]
+                    if entity_identifier in graph.nodes():
+                        node = graph.nodes[entity_identifier]
                         if self._join_descriptions:
                             node["description"] = "\n".join(
                                 list({
@@ -237,7 +238,7 @@ class GraphExtractor:
                         )
                     else:
                         graph.add_node(
-                            entity_name,
+                            entity_identifier,
                             type=entity_type,
                             description=entity_description,
                             source_id=str(source_doc_id),
@@ -245,12 +246,12 @@ class GraphExtractor:
 
                 if (
                     record_attributes[0] == '"relationship"'
-                    and len(record_attributes) >= 5
+                    and len(record_attributes) >= 7
                 ):
                     # add this record as edge
-                    source = clean_str(record_attributes[1].upper())
-                    target = clean_str(record_attributes[2].upper())
-                    edge_description = clean_str(record_attributes[3])
+                    source = f"{clean_str(record_attributes[1].upper())}...{clean_str(record_attributes[2].upper())}"
+                    target = f"{clean_str(record_attributes[3].upper())}...{clean_str(record_attributes[4].upper())}"
+                    edge_description = clean_str(record_attributes[5])
                     edge_source_id = clean_str(str(source_doc_id))
                     try:
                         weight = float(record_attributes[-1])
