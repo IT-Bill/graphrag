@@ -149,9 +149,18 @@ def read_indexer_entities(
         community_join, left_on="id", right_on="entity_ids", how="left"
     )
     entities_df = final_entities
+    
+    # !
+    nodes_df["level"] = nodes_df["level"].fillna(0)
+    nodes_df["level"] = nodes_df["level"].astype(int)
+    nodes_df["community"] = nodes_df["community"].fillna(-1)
+    nodes_df["community"] = nodes_df["community"].astype(int)
 
+    print(nodes_df.shape)    
+    nodes_df.to_excel("nodes_df.xlsx")
     if community_level is not None:
         nodes_df = _filter_under_community_level(nodes_df, community_level)
+    print(nodes_df.shape)
 
     nodes_df = nodes_df.loc[:, ["id", "community"]]
 
@@ -243,3 +252,8 @@ def _filter_under_community_level(
         "pd.DataFrame",
         df[df.level <= community_level],
     )
+
+    # return cast(
+    #     "pd.DataFrame", 
+    #     df[df.level.isna()]
+    # )

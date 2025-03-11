@@ -160,6 +160,9 @@ class LocalSearch(BaseSearch[LocalContextBuilder]):
         for callback in self.callbacks:
             callback.on_context(context_result.context_records)
 
+        with open("output/context.txt", "w") as f:
+            f.write(str(context_result.context_chunks))
+        
         async for response in self.model.achat_stream(
             prompt=query,
             history=history_messages,

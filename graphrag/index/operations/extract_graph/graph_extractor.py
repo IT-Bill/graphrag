@@ -261,14 +261,14 @@ class GraphExtractor:
                     if source not in graph.nodes():
                         graph.add_node(
                             source,
-                            type="",
+                            type=clean_str(record_attributes[2].upper()),
                             description="",
                             source_id=edge_source_id,
                         )
                     if target not in graph.nodes():
                         graph.add_node(
                             target,
-                            type="",
+                            type=clean_str(record_attributes[4].upper()),
                             description="",
                             source_id=edge_source_id,
                         )
