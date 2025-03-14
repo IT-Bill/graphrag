@@ -109,7 +109,7 @@ async def summarize_descriptions(
 
         edge_futures = [
             do_summarize_descriptions(
-                row.source,  # type: ignore
+                (str(row.source), str(row.target)),  # type: ignore
                 sorted(set(row.description)),  # type: ignore
                 ticker,
                 semaphore,

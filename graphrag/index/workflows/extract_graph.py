@@ -124,7 +124,6 @@ async def get_summarized_entities_relationships(
     summarization_num_threads: int = 4,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Summarize the entities and relationships."""
-    # print("aaaaaaaaaaaaaaaaaa")
     entity_summaries, relationship_summaries = await summarize_descriptions(
         entities_df=extracted_entities,
         relationships_df=extracted_relationships,
