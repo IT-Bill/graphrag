@@ -91,6 +91,10 @@ class CommunityReportsExtractor:
             self._on_error(e, traceback.format_exc(), None)
 
         text_output = self._get_text_output(output) if output else ""
+        
+        # !! Remove prefix and suffix from the output
+        text_output = text_output.replace("```json", "").replace("```", "")
+        
         return CommunityReportsResult(
             structured_output=output,
             output=text_output,

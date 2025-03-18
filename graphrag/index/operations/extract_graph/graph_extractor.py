@@ -3,7 +3,7 @@
 
 """A module containing 'GraphExtractionResult' and 'GraphExtractor' models."""
 
-import logging
+import logging  # noqa: I001
 import re
 import traceback
 from collections.abc import Mapping
@@ -19,8 +19,11 @@ from graphrag.index.utils.string import clean_str
 from graphrag.language_model.protocol.base import ChatModel
 from graphrag.prompts.index.extract_graph import (
     CONTINUE_PROMPT,
-    GRAPH_EXTRACTION_PROMPT,
+    ENTITY_CONTINUE_PROMPT,
     LOOP_PROMPT,
+    GRAPH_EXTRACTION_PROMPT,
+    GRAPH_EXTRACTION_ENTITY_PROMPT,
+    GRAPH_EXTRACTION_RELATIONSHIP_PROMPT
 )
 
 DEFAULT_TUPLE_DELIMITER = "<|>"
@@ -83,6 +86,11 @@ class GraphExtractor:
         )
         self._entity_types_key = entity_types_key or "entity_types"
         self._extraction_prompt = prompt or GRAPH_EXTRACTION_PROMPT
+        # !! New Prompt
+        self._extraction_entity_prompt = GRAPH_EXTRACTION_ENTITY_PROMPT
+        self._extraction_relationship_prompt = GRAPH_EXTRACTION_RELATIONSHIP_PROMPT
+        
+        # !! New Prompt
         self._max_gleanings = (
             max_gleanings
             if max_gleanings is not None
@@ -152,38 +160,59 @@ class GraphExtractor:
     async def _process_document(
         self, text: str, prompt_variables: dict[str, str]
     ) -> str:
-        response = await self._model.achat(
-            self._extraction_prompt.format(**{
+        response_entity = await self._model.achat(
+            self._extraction_entity_prompt.format(**{
                 **prompt_variables,
                 self._input_text_key: text,
             }),
         )
-        results = response.output.content or ""
-
-        # Repeat to ensure we maximize entity count
-        for i in range(self._max_gleanings):
-            response = await self._model.achat(
-                CONTINUE_PROMPT,
+        results_entity = response_entity.output.content or ""
+        for i in range(self._max_gleanings):  # default as 1
+            resp = await self._model.achat(
+                ENTITY_CONTINUE_PROMPT,
                 name=f"extract-continuation-{i}",
-                history=response.history,
+                history=response_entity.history,
             )
-            results += response.output.content or ""
+            
+            results_entity += resp.output.content or ""
+            
+        
+        response_relationship = await self._model.achat(
+            self._extraction_relationship_prompt.format(**{
+                **prompt_variables,
+                self._input_text_key: text,
+                "identified_entities": results_entity,
+            }),
+        )
+        results_relationship = response_relationship.output.content or ""
+        
+        results = f"{results_entity}\n{results_relationship}"
+        
 
-            # if this is the final glean, don't bother updating the continuation flag
-            if i >= self._max_gleanings - 1:
-                break
+        # # Repeat to ensure we maximize entity count
+        # for i in range(self._max_gleanings):
+        #     response = await self._model.achat(
+        #         CONTINUE_PROMPT,
+        #         name=f"extract-continuation-{i}",
+        #         history=response.history,
+        #     )
+        #     results += response.output.content or ""
 
-            response = await self._model.achat(
-                LOOP_PROMPT,
-                name=f"extract-loopcheck-{i}",
-                history=response.history,
-                model_parameters=self._loop_args,
-            )
+        #     # if this is the final glean, don't bother updating the continuation flag
+        #     if i >= self._max_gleanings - 1:
+        #         break
 
-            if response.output.content != "Y":
-                break
+        #     response = await self._model.achat(
+        #         LOOP_PROMPT,
+        #         name=f"extract-loopcheck-{i}",
+        #         history=response.history,
+        #         model_parameters=self._loop_args,
+        #     )
 
-        return results
+        #     if response.output.content != "Y":
+        #         break
+
+        return results  # noqa: RET504
 
     async def _process_results(
         self,
@@ -213,9 +242,10 @@ class GraphExtractor:
                     entity_name = clean_str(record_attributes[1].upper())
                     entity_type = clean_str(record_attributes[2].upper())
                     entity_description = clean_str(record_attributes[3])
+                    entity_identifier = f"{entity_name}...{entity_type}"
 
-                    if entity_name in graph.nodes():
-                        node = graph.nodes[entity_name]
+                    if entity_identifier in graph.nodes():
+                        node = graph.nodes[entity_identifier]
                         if self._join_descriptions:
                             node["description"] = "\n".join(
                                 list({
@@ -237,20 +267,20 @@ class GraphExtractor:
                         )
                     else:
                         graph.add_node(
-                            entity_name,
+                            entity_identifier,
                             type=entity_type,
                             description=entity_description,
                             source_id=str(source_doc_id),
                         )
 
-                if (
+                elif (
                     record_attributes[0] == '"relationship"'
-                    and len(record_attributes) >= 5
+                    and len(record_attributes) >= 6
                 ):
                     # add this record as edge
-                    source = clean_str(record_attributes[1].upper())
-                    target = clean_str(record_attributes[2].upper())
-                    edge_description = clean_str(record_attributes[3])
+                    source = f"{clean_str(record_attributes[1].upper())}...{clean_str(record_attributes[2].upper())}"
+                    target = f"{clean_str(record_attributes[3].upper())}...{clean_str(record_attributes[4].upper())}"
+                    edge_description = clean_str(record_attributes[5])
                     edge_source_id = clean_str(str(source_doc_id))
                     try:
                         weight = float(record_attributes[-1])
@@ -260,14 +290,14 @@ class GraphExtractor:
                     if source not in graph.nodes():
                         graph.add_node(
                             source,
-                            type="",
+                            type=clean_str(record_attributes[2].upper()),
                             description="",
                             source_id=edge_source_id,
                         )
                     if target not in graph.nodes():
                         graph.add_node(
                             target,
-                            type="",
+                            type=clean_str(record_attributes[4].upper()),
                             description="",
                             source_id=edge_source_id,
                         )
@@ -295,9 +325,8 @@ class GraphExtractor:
                         description=edge_description,
                         source_id=edge_source_id,
                     )
-
+                
         return graph
-
 
 def _unpack_descriptions(data: Mapping) -> list[str]:
     value = data.get("description", None)

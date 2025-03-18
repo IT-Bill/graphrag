@@ -51,6 +51,7 @@ def map_query_to_entities(
     if exclude_entity_names is None:
         exclude_entity_names = []
     all_entities = list(all_entities_dict.values())
+    # print(list(all_entities_dict.keys()))
     matched_entities = []
     if query != "":
         # get entities with highest semantic similarity to query
@@ -60,11 +61,13 @@ def map_query_to_entities(
             text_embedder=lambda t: text_embedder.embed(t),
             k=k * oversample_scaler,
         )
+        # print([result.document.id for result in search_results])
         for result in search_results:
             if embedding_vectorstore_key == EntityVectorStoreKey.ID and isinstance(
                 result.document.id, str
             ):
                 matched = get_entity_by_id(all_entities_dict, result.document.id)
+                # print("1111:", matched)
             else:
                 matched = get_entity_by_key(
                     entities=all_entities,
