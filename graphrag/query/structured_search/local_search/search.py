@@ -23,7 +23,7 @@ from graphrag.query.llm.text_utils import num_tokens
 from graphrag.query.structured_search.base import BaseSearch, SearchResult
 
 DEFAULT_LLM_PARAMS = {
-    "max_tokens": 1500,
+    "max_completion_tokens": 1500,
     "temperature": 0.0,
 }
 

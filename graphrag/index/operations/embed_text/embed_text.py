@@ -69,7 +69,7 @@ async def embed_text(
             type: openai_embedding # the type of llm to use, available options are: openai_embedding, azure_openai_embedding
             api_key: !ENV ${GRAPHRAG_OPENAI_API_KEY} # The api key to use for openai
             model: !ENV ${GRAPHRAG_OPENAI_MODEL:gpt-4-turbo-preview} # The model to use for openai
-            max_tokens: !ENV ${GRAPHRAG_MAX_TOKENS:6000} # The max tokens to use for openai
+            max_completion_tokens: !ENV ${GRAPHRAG_max_completion_tokens:6000} # The max tokens to use for openai
             organization: !ENV ${GRAPHRAG_OPENAI_ORGANIZATION} # The organization to use for openai
         vector_store: # The optional configuration for the vector store
             type: lancedb # The type of vector store to use, available options are: azure_ai_search, lancedb

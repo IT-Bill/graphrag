@@ -39,18 +39,18 @@ class DRIFTSearchConfig(BaseModel):
         description="The number of completions to generate.",
         default=graphrag_config_defaults.drift_search.n,
     )
-    max_tokens: int = Field(
+    max_completion_tokens: int = Field(
         description="The maximum context size in tokens.",
-        default=graphrag_config_defaults.drift_search.max_tokens,
+        default=graphrag_config_defaults.drift_search.max_completion_tokens,
     )
-    data_max_tokens: int = Field(
+    data_max_completion_tokens: int = Field(
         description="The data llm maximum tokens.",
-        default=graphrag_config_defaults.drift_search.data_max_tokens,
+        default=graphrag_config_defaults.drift_search.data_max_completion_tokens,
     )
 
-    reduce_max_tokens: int = Field(
+    reduce_max_completion_tokens: int = Field(
         description="The reduce llm maximum tokens response to produce.",
-        default=graphrag_config_defaults.drift_search.reduce_max_tokens,
+        default=graphrag_config_defaults.drift_search.reduce_max_completion_tokens,
     )
 
     reduce_temperature: float = Field(
@@ -73,9 +73,9 @@ class DRIFTSearchConfig(BaseModel):
         default=graphrag_config_defaults.drift_search.primer_folds,
     )
 
-    primer_llm_max_tokens: int = Field(
+    primer_llm_max_completion_tokens: int = Field(
         description="The maximum number of tokens for the LLM in primer.",
-        default=graphrag_config_defaults.drift_search.primer_llm_max_tokens,
+        default=graphrag_config_defaults.drift_search.primer_llm_max_completion_tokens,
     )
 
     n_depth: int = Field(

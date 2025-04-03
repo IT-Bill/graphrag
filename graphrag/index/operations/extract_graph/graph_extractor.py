@@ -102,7 +102,7 @@ class GraphExtractor:
         encoding = tiktoken.get_encoding(encoding_model or ENCODING_MODEL)
         yes = f"{encoding.encode('Y')[0]}"
         no = f"{encoding.encode('N')[0]}"
-        self._loop_args = {"logit_bias": {yes: 100, no: 100}, "max_tokens": 1}
+        self._loop_args = {"logit_bias": {yes: 100, no: 100}, "max_completion_tokens": 1}
 
     async def __call__(
         self, texts: list[str], prompt_variables: dict[str, Any] | None = None
@@ -160,59 +160,68 @@ class GraphExtractor:
     async def _process_document(
         self, text: str, prompt_variables: dict[str, str]
     ) -> str:
-        response_entity = await self._model.achat(
-            self._extraction_entity_prompt.format(**{
-                **prompt_variables,
-                self._input_text_key: text,
-            }),
-        )
-        results_entity = response_entity.output.content or ""
-        for i in range(self._max_gleanings):  # default as 1
-            resp = await self._model.achat(
-                ENTITY_CONTINUE_PROMPT,
-                name=f"extract-continuation-{i}",
-                history=response_entity.history,
-            )
-            
-            results_entity += resp.output.content or ""
-            
-        
-        response_relationship = await self._model.achat(
-            self._extraction_relationship_prompt.format(**{
-                **prompt_variables,
-                self._input_text_key: text,
-                "identified_entities": results_entity,
-            }),
-        )
-        results_relationship = response_relationship.output.content or ""
-        
-        results = f"{results_entity}\n{results_relationship}"
-        
-
-        # # Repeat to ensure we maximize entity count
-        # for i in range(self._max_gleanings):
-        #     response = await self._model.achat(
-        #         CONTINUE_PROMPT,
+        # response_entity = await self._model.achat(
+        #     self._extraction_entity_prompt.format(**{
+        #         **prompt_variables,
+        #         self._input_text_key: text,
+        #     }),
+        # )
+        # results_entity = response_entity.output.content or ""
+        # for i in range(self._max_gleanings):  # default as 1
+        #     resp = await self._model.achat(
+        #         ENTITY_CONTINUE_PROMPT,
         #         name=f"extract-continuation-{i}",
-        #         history=response.history,
+        #         history=response_entity.history,
         #     )
-        #     results += response.output.content or ""
+            
+        #     results_entity += resp.output.content or ""
+            
+        
+        # response_relationship = await self._model.achat(
+        #     self._extraction_relationship_prompt.format(**{
+        #         **prompt_variables,
+        #         self._input_text_key: text,
+        #         "identified_entities": results_entity,
+        #     }),
+        # )
+        # results_relationship = response_relationship.output.content or ""
+        
+        # results = f"{results_entity}\n{results_relationship}"
+        
 
-        #     # if this is the final glean, don't bother updating the continuation flag
-        #     if i >= self._max_gleanings - 1:
-        #         break
+        response = await self._model.achat(
+            self._extraction_prompt.format(**{
+                **prompt_variables,
+                self._input_text_key: text,
+            }),
+        )
+        results = response.output.content or ""
 
-        #     response = await self._model.achat(
-        #         LOOP_PROMPT,
-        #         name=f"extract-loopcheck-{i}",
-        #         history=response.history,
-        #         model_parameters=self._loop_args,
-        #     )
+        # Repeat to ensure we maximize entity count
+        for i in range(self._max_gleanings):
+            response = await self._model.achat(
+                CONTINUE_PROMPT,
+                name=f"extract-continuation-{i}",
+                history=response.history,
+            )
+            results += response.output.content or ""
 
-        #     if response.output.content != "Y":
-        #         break
+            # if this is the final glean, don't bother updating the continuation flag
+            if i >= self._max_gleanings - 1:
+                break
 
-        return results  # noqa: RET504
+            response = await self._model.achat(
+                LOOP_PROMPT,
+                name=f"extract-loopcheck-{i}",
+                history=response.history,
+                model_parameters=self._loop_args,
+            )
+
+            if response.output.content != "Y":
+                break
+
+        return results
+
 
     async def _process_results(
         self,

@@ -303,7 +303,7 @@ def _prompt_tune_cli(
             help="The number of documents to load when --selection-method={random,top}."
         ),
     ] = LIMIT,
-    max_tokens: Annotated[
+    max_completion_tokens: Annotated[
         int, typer.Option(help="The max token count for prompt generation.")
     ] = MAX_TOKEN_COUNT,
     min_examples_required: Annotated[
@@ -358,7 +358,7 @@ def _prompt_tune_cli(
             logger=logger,
             selection_method=selection_method,
             limit=limit,
-            max_tokens=max_tokens,
+            max_completion_tokens=max_completion_tokens,
             chunk_size=chunk_size,
             overlap=overlap,
             language=language,

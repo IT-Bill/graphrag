@@ -80,11 +80,11 @@ class DRIFTSearch(BaseSearch[DRIFTSearchContextBuilder]):
             "include_community_rank": False,
             "return_candidate_context": False,
             "embedding_vectorstore_key": EntityVectorStoreKey.ID,
-            "max_tokens": self.context_builder.config.local_search_max_data_tokens,
+            "max_completion_tokens": self.context_builder.config.local_search_max_data_tokens,
         }
 
         model_params = {
-            "max_tokens": self.context_builder.config.local_search_llm_max_gen_tokens,
+            "max_completion_tokens": self.context_builder.config.local_search_llm_max_gen_tokens,
             "temperature": self.context_builder.config.local_search_temperature,
             "response_format": {"type": "json_object"},
         }
@@ -268,7 +268,7 @@ class DRIFTSearch(BaseSearch[DRIFTSearchContextBuilder]):
                 llm_calls=llm_calls,
                 prompt_tokens=prompt_tokens,
                 output_tokens=output_tokens,
-                max_tokens=self.context_builder.config.reduce_max_tokens,
+                max_completion_tokens=self.context_builder.config.reduce_max_completion_tokens,
                 temperature=self.context_builder.config.reduce_temperature,
             )
 
@@ -311,7 +311,7 @@ class DRIFTSearch(BaseSearch[DRIFTSearchContextBuilder]):
         async for resp in self._reduce_response_streaming(
             responses=result.response,
             query=query,
-            max_tokens=self.context_builder.config.reduce_max_tokens,
+            max_completion_tokens=self.context_builder.config.reduce_max_completion_tokens,
             temperature=self.context_builder.config.reduce_temperature,
         ):
             full_response += resp

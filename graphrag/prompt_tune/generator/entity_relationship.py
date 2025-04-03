@@ -61,5 +61,11 @@ async def generate_entity_relationship_examples(
     ]
 
     responses = await asyncio.gather(*tasks)
+    
+    # save responses to json
+    with open("responses.json", "w") as f:  # noqa: ASYNC230
+        for message in messages:
+            f.write(message)
+            f.write("\n")
 
     return [str(response.output.content) for response in responses]

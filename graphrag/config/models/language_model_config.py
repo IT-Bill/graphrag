@@ -109,9 +109,9 @@ class LanguageModelConfig(BaseModel):
         if self.encoding_model.strip() == "":
             self.encoding_model = tiktoken.encoding_name_for_model(self.model)
 
-    max_tokens: int = Field(
+    max_completion_tokens: int = Field(
         description="The maximum number of tokens to generate.",
-        default=language_model_defaults.max_tokens,
+        default=language_model_defaults.max_completion_tokens,
     )
     temperature: float = Field(
         description="The temperature to use for token generation.",

@@ -21,8 +21,7 @@ For each pair of related entities, extract the following information:
 - target_entity_name: name of the target entity, as identified in step 1
 - target_entity_type: type of the target entity
 - relationship_description: explanation as to why you think the source entity and the target entity are related to each other
-- relationship_strength: an integer score between 1 to 10, indicating strength of the relationship between the source entity and target entity
-Format each relationship as ("relationship"{{tuple_delimiter}}<source_entity_name>{{tuple_delimiter}}<source_entity_type>{{tuple_delimiter}}<target_entity_name>{{tuple_delimiter}}<target_entity_type>{{tuple_delimiter}}<relationship_description>{{tuple_delimiter}}<relationship_strength>)
+Format each relationship as ("relationship"{{tuple_delimiter}}<source_entity_name>{{tuple_delimiter}}<source_entity_type>{{tuple_delimiter}}<target_entity_name>{{tuple_delimiter}}<target_entity_type>{{tuple_delimiter}}<relationship_description>)
 
 
 3. Return output in {language} as a single list of all the entities and relationships identified in steps 1 and 2. Use **{{record_delimiter}}** as the list delimiter.

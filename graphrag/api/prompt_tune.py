@@ -61,7 +61,7 @@ async def generate_indexing_prompts(
     selection_method: DocSelectionType = DocSelectionType.RANDOM,
     domain: str | None = None,
     language: str | None = None,
-    max_tokens: int = MAX_TOKEN_COUNT,
+    max_completion_tokens: int = MAX_TOKEN_COUNT,
     discover_entity_types: bool = True,
     min_examples_required: PositiveInt = 2,
     n_subset_max: PositiveInt = 300,
@@ -80,7 +80,7 @@ async def generate_indexing_prompts(
     - selection_method: The chunk selection method.
     - domain: The domain to map the input documents to.
     - language: The language to use for the prompts.
-    - max_tokens: The maximum number of tokens to use on entity extraction prompts
+    - max_completion_tokens: The maximum number of tokens to use on entity extraction prompts
     - discover_entity_types: Generate entity types.
     - min_examples_required: The minimum number of examples required for entity extraction prompts.
     - n_subset_max: The number of text chunks to embed when using auto selection method.
@@ -167,6 +167,7 @@ async def generate_indexing_prompts(
         json_mode=False,  # config.llm.model_supports_json should be used, but these prompts are used in non-json mode by the index engine
     )
 
+
     logger.info("Generating entity extraction prompt...")
     extract_graph_prompt = create_extract_graph_prompt(
         entity_types=entity_types,
@@ -175,7 +176,7 @@ async def generate_indexing_prompts(
         language=language,
         json_mode=False,  # config.llm.model_supports_json should be used, but these prompts are used in non-json mode by the index engine
         encoding_model=extract_graph_llm_settings.encoding_model,
-        max_token_count=max_tokens,
+        max_token_count=max_completion_tokens,
         min_examples_required=min_examples_required,
     )
 

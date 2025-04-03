@@ -92,7 +92,7 @@ class ClaimExtractor:
         encoding = tiktoken.get_encoding(encoding_model or ENCODING_MODEL)
         yes = f"{encoding.encode('Y')[0]}"
         no = f"{encoding.encode('N')[0]}"
-        self._loop_args = {"logit_bias": {yes: 100, no: 100}, "max_tokens": 1}
+        self._loop_args = {"logit_bias": {yes: 100, no: 100}, "max_completion_tokens": 1}
 
     async def __call__(
         self, inputs: dict[str, Any], prompt_variables: dict | None = None

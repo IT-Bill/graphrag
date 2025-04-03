@@ -40,13 +40,13 @@ def batched(iterable: Iterator, n: int):
 
 
 def chunk_text(
-    text: str, max_tokens: int, token_encoder: tiktoken.Encoding | None = None
+    text: str, max_completion_tokens: int, token_encoder: tiktoken.Encoding | None = None
 ):
     """Chunk text by token length."""
     if token_encoder is None:
         token_encoder = tiktoken.get_encoding(defs.ENCODING_MODEL)
     tokens = token_encoder.encode(text)  # type: ignore
-    chunk_iterator = batched(iter(tokens), max_tokens)
+    chunk_iterator = batched(iter(tokens), max_completion_tokens)
     yield from (token_encoder.decode(list(chunk)) for chunk in chunk_iterator)
 
 

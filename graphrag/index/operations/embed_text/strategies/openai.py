@@ -33,10 +33,10 @@ async def run(
         return TextEmbeddingResult(embeddings=None)
 
     batch_size = args.get("batch_size", 16)
-    batch_max_tokens = args.get("batch_max_tokens", 8191)
+    batch_max_completion_tokens = args.get("batch_max_completion_tokens", 8191)
     llm_config = args["llm"]
     llm_config = LanguageModelConfig(**args["llm"])
-    splitter = _get_splitter(llm_config, batch_max_tokens)
+    splitter = _get_splitter(llm_config, batch_max_completion_tokens)
     model = ModelManager().get_or_create_embedding_model(
         name="text_embedding",
         model_type=llm_config.type,
@@ -51,16 +51,16 @@ async def run(
     text_batches = _create_text_batches(
         texts,
         batch_size,
-        batch_max_tokens,
+        batch_max_completion_tokens,
         splitter,
     )
     log.info(
-        "embedding %d inputs via %d snippets using %d batches. max_batch_size=%d, max_tokens=%d",
+        "embedding %d inputs via %d snippets using %d batches. max_batch_size=%d, max_completion_tokens=%d",
         len(input),
         len(texts),
         len(text_batches),
         batch_size,
-        batch_max_tokens,
+        batch_max_completion_tokens,
     )
     ticker = progress_ticker(callbacks.progress, len(text_batches))
 
@@ -72,11 +72,11 @@ async def run(
 
 
 def _get_splitter(
-    config: LanguageModelConfig, batch_max_tokens: int
+    config: LanguageModelConfig, batch_max_completion_tokens: int
 ) -> TokenTextSplitter:
     return TokenTextSplitter(
         encoding_name=config.encoding_model,
-        chunk_size=batch_max_tokens,
+        chunk_size=batch_max_completion_tokens,
     )
 
 

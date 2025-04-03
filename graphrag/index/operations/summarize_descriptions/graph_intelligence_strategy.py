@@ -49,7 +49,7 @@ async def run_summarize_descriptions(
     summarize_prompt = args.get("summarize_prompt", None)
     entity_name_key = args.get("entity_name_key", "entity_name")
     input_descriptions_key = args.get("input_descriptions_key", "description_list")
-    max_tokens = args.get("max_tokens", None)
+    max_completion_tokens = args.get("max_completion_tokens", None)
 
     extractor = SummarizeExtractor(
         model_invoker=model,
@@ -62,7 +62,7 @@ async def run_summarize_descriptions(
             else None
         ),
         max_summary_length=args.get("max_summary_length", None),
-        max_input_tokens=max_tokens,
+        max_input_tokens=max_completion_tokens,
     )
 
     result = await extractor(id=id, descriptions=descriptions)

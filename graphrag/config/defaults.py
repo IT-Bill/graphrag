@@ -46,8 +46,8 @@ class BasicSearchDefaults:
     temperature: float = 0
     top_p: float = 1
     n: int = 1
-    max_tokens: int = 12_000
-    llm_max_tokens: int = 2000
+    max_completion_tokens: int = 12_000
+    llm_max_completion_tokens: int = 2000
     chat_model_id: str = DEFAULT_CHAT_MODEL_ID
     embedding_model_id: str = DEFAULT_EMBEDDING_MODEL_ID
 
@@ -107,14 +107,14 @@ class DriftSearchDefaults:
     temperature: float = 0
     top_p: float = 1
     n: int = 1
-    max_tokens: int = 12_000
-    data_max_tokens: int = 12_000
-    reduce_max_tokens: int = 2_000
+    max_completion_tokens: int = 12_000
+    data_max_completion_tokens: int = 12_000
+    reduce_max_completion_tokens: int = 2_000
     reduce_temperature: float = 0
     concurrency: int = 32
     drift_k_followups: int = 20
     primer_folds: int = 5
-    primer_llm_max_tokens: int = 12_000
+    primer_llm_max_completion_tokens: int = 12_000
     n_depth: int = 3
     local_search_text_unit_prop: float = 0.9
     local_search_community_prop: float = 0.1
@@ -149,7 +149,7 @@ class EmbedTextDefaults:
 
     model: str = "text-embedding-3-small"
     batch_size: int = 16
-    batch_max_tokens: int = 8191
+    batch_max_completion_tokens: int = 8191
     target = TextEmbeddingTarget.required
     model_id: str = DEFAULT_EMBEDDING_MODEL_ID
     names: list[str] = field(default_factory=list)
@@ -231,10 +231,10 @@ class GlobalSearchDefaults:
     temperature: float = 0
     top_p: float = 1
     n: int = 1
-    max_tokens: int = 12_000
-    data_max_tokens: int = 12_000
-    map_max_tokens: int = 1000
-    reduce_max_tokens: int = 2000
+    max_completion_tokens: int = 12_000
+    data_max_completion_tokens: int = 12_000
+    map_max_completion_tokens: int = 1000
+    reduce_max_completion_tokens: int = 2000
     concurrency: int = 32
     dynamic_search_llm: str = "gpt-4o-mini"
     dynamic_search_threshold: int = 1
@@ -271,7 +271,7 @@ class LanguageModelDefaults:
     api_key: None = None
     auth_type = AuthType.APIKey
     encoding_model: str = ""
-    max_tokens: int = 4000
+    max_completion_tokens: int = 4000
     temperature: float = 0
     top_p: float = 1
     n: int = 1
@@ -308,8 +308,8 @@ class LocalSearchDefaults:
     temperature: float = 0
     top_p: float = 1
     n: int = 1
-    max_tokens: int = 12_000
-    llm_max_tokens: int = 2000
+    max_completion_tokens: int = 12_000
+    llm_max_completion_tokens: int = 2000
     chat_model_id: str = DEFAULT_CHAT_MODEL_ID
     embedding_model_id: str = DEFAULT_EMBEDDING_MODEL_ID
 
