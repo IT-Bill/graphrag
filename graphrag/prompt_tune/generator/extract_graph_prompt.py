@@ -16,7 +16,9 @@ from graphrag.prompt_tune.template.extract_graph import (
 )
 
 EXTRACT_GRAPH_FILENAME = "extract_graph.txt"
-
+DEFAULT_TUPLE_DELIMITER = "<|>"
+DEFAULT_RECORD_DELIMITER = "##"
+DEFAULT_COMPLETION_DELIMITER = "<|COMPLETE|>"
 
 def create_extract_graph_prompt(
     entity_types: str | list[str] | None,

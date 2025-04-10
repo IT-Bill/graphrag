@@ -12,8 +12,10 @@ from graphrag.prompt_tune.prompt.entity_relationship import (
     UNTYPED_ENTITY_RELATIONSHIPS_GENERATION_PROMPT,
 )
 
-MAX_EXAMPLES = 5
-
+MAX_EXAMPLES = 3
+DEFAULT_TUPLE_DELIMITER = "<|>"
+DEFAULT_RECORD_DELIMITER = "##"
+DEFAULT_COMPLETION_DELIMITER = "<|COMPLETE|>"
 
 async def generate_entity_relationship_examples(
     model: ChatModel,
@@ -29,7 +31,7 @@ async def generate_entity_relationship_examples(
     on the json_mode parameter.
     """
     docs_list = [docs] if isinstance(docs, str) else docs
-    history = [{"content": persona, "role": "system"}]
+    history = [{"content": persona, "role": "user"}]
 
     if entity_types:
         entity_types_str = (
@@ -44,6 +46,11 @@ async def generate_entity_relationship_examples(
                 if json_mode
                 else ENTITY_RELATIONSHIPS_GENERATION_PROMPT
             ).format(entity_types=entity_types_str, input_text=doc, language=language)
+            .format(
+                tuple_delimiter=DEFAULT_TUPLE_DELIMITER,
+                record_delimiter=DEFAULT_RECORD_DELIMITER,
+                completion_delimiter=DEFAULT_COMPLETION_DELIMITER,
+            )
             for doc in docs_list
         ]
     else:
@@ -63,9 +70,14 @@ async def generate_entity_relationship_examples(
     responses = await asyncio.gather(*tasks)
     
     # save responses to json
-    with open("responses.json", "w") as f:  # noqa: ASYNC230
+    with open("responses.txt", "w") as f:  # noqa: ASYNC230
+        for response in responses:
+            f.write(response.output.content)
+            f.write("----------------------------------------\n")
+
+    with open("messages.txt", "w") as f:
         for message in messages:
             f.write(message)
-            f.write("\n")
+            f.write("----------------------------------------\n")
 
     return [str(response.output.content) for response in responses]

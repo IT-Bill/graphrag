@@ -43,7 +43,7 @@ async def generate_entity_types(
         else ENTITY_TYPE_GENERATION_PROMPT
     ).format(task=formatted_task, input_text=docs_str)
 
-    history = [{"role": "system", "content": persona}]
+    history = [{"role": "user", "content": persona}]
 
     if json_mode:
         response = await model.achat(
