@@ -29,6 +29,7 @@ class TextEmbedStrategyType(str, Enum):
 
     openai = "openai"
     mock = "mock"
+    gemini = "gemini"
 
     def __repr__(self):
         """Get a string representation."""
@@ -248,6 +249,14 @@ def load_strategy(strategy: TextEmbedStrategyType) -> TextEmbeddingStrategy:
             )
 
             return run_mock
+
+        case TextEmbedStrategyType.gemini:
+            from graphrag.index.operations.embed_text.strategies.gemini import (
+                run as run_gemini,
+            )
+
+            return run_gemini
+        
         case _:
             msg = f"Unknown strategy: {strategy}"
             raise ValueError(msg)

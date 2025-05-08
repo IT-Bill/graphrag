@@ -16,6 +16,10 @@ from graphrag.vector_stores.base import (
     VectorStoreSearchResult,
 )
 import lancedb
+import os
+
+from google import genai
+genai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
 class LanceDBVectorStore(BaseVectorStore):
@@ -131,7 +135,12 @@ class LanceDBVectorStore(BaseVectorStore):
         self, text: str, text_embedder: TextEmbedder, k: int = 10, **kwargs: Any
     ) -> list[VectorStoreSearchResult]:
         """Perform a similarity search using a given input text."""
-        query_embedding = text_embedder(text)
+        # query_embedding = text_embedder(text)
+        query_embedding = genai_client.models.embed_content(
+            model="text-embedding-004",
+            contents=text,
+        ).embeddings[0].values
+        
         if query_embedding:
             return self.similarity_search_by_vector(query_embedding, k)
         return []

@@ -163,6 +163,7 @@ class LocalSearch(BaseSearch[LocalContextBuilder]):
         with open("output/context.txt", "w") as f:
             f.write(str(context_result.context_chunks))
         
+        del self.model_params["temperature"]
         async for response in self.model.achat_stream(
             prompt=query,
             history=history_messages,

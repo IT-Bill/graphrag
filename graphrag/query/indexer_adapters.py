@@ -248,6 +248,10 @@ def embed_community_reports(
 def _filter_under_community_level(
     df: pd.DataFrame, community_level: int
 ) -> pd.DataFrame:
+    # if df.level not exist
+    if "level" not in df.columns:
+        return df
+    
     return cast(
         "pd.DataFrame",
         df[df.level <= community_level],

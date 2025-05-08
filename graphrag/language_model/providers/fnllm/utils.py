@@ -57,7 +57,7 @@ def _create_openai_config(config: LanguageModelConfig, azure: bool) -> OpenAICon
         frequency_penalty=config.frequency_penalty,
         presence_penalty=config.presence_penalty,
         top_p=config.top_p,
-        max_completion_tokens=config.max_completion_tokens,
+        # max_completion_tokens=config.max_completion_tokens,
         n=config.n,
         # temperature=config.temperature,
     )

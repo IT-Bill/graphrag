@@ -48,8 +48,15 @@ class TextEmbeddingConfig(BaseModel):
             TextEmbedStrategyType,
         )
 
-        return self.strategy or {
-            "type": TextEmbedStrategyType.openai,
+        # return self.strategy or {
+        #     "type": TextEmbedStrategyType.openai,
+        #     "llm": model_config.model_dump(),
+        #     "num_threads": model_config.concurrent_requests,
+        #     "batch_size": self.batch_size,
+        #     "batch_max_completion_tokens": self.batch_max_completion_tokens,
+        # }
+        return {
+            "type": TextEmbedStrategyType.gemini,
             "llm": model_config.model_dump(),
             "num_threads": model_config.concurrent_requests,
             "batch_size": self.batch_size,

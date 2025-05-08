@@ -385,6 +385,27 @@ output:
 """
 
 
-CONTINUE_PROMPT = "MANY entities and relationships were missed in the last extraction. Remember to ONLY emit entities that match any of the previously extracted types. Add them below using the same format:\n"
+CONTINUE_PROMPT = '''
+Goal
+"""
+Given a document, output all entities with their types and descriptions.
+And output all relationships between those entities.
+Some entities and relationships were missed in the last extraction.
+Remember to only emit entities and relationships that match any of the previously entities and relationships.
+"""
+
+Previous entities and relationships
+"""
+{previous_entities_and_relationships}
+"""
+
+Document
+"""
+{input_text}
+"""
+
+Output:
+'''
+
 ENTITY_CONTINUE_PROMPT = "MANY entities were missed in the last extraction. Remember to ONLY emit entities that match any of the previously extracted types. Add them below using the same format:\n"
 LOOP_PROMPT = "It appears some entities and relationships may have still been missed.  Answer Y or N if there are still entities or relationships that need to be added.\n"

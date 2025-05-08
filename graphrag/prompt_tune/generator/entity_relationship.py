@@ -39,18 +39,23 @@ async def generate_entity_relationship_examples(
             if isinstance(entity_types, str)
             else ", ".join(map(str, entity_types))
         )
-
+        # messages = [
+        #     (
+        #         ENTITY_RELATIONSHIPS_GENERATION_JSON_PROMPT
+        #         if json_mode
+        #         else ENTITY_RELATIONSHIPS_GENERATION_PROMPT
+        #     ).format(entity_types=entity_types_str, input_text=doc, language=language)
+        #     .format(
+        #         tuple_delimiter=DEFAULT_TUPLE_DELIMITER,
+        #         record_delimiter=DEFAULT_RECORD_DELIMITER,
+        #         completion_delimiter=DEFAULT_COMPLETION_DELIMITER,
+        #     )
+        #     for doc in docs_list
+        # ]
         messages = [
             (
                 ENTITY_RELATIONSHIPS_GENERATION_JSON_PROMPT
-                if json_mode
-                else ENTITY_RELATIONSHIPS_GENERATION_PROMPT
             ).format(entity_types=entity_types_str, input_text=doc, language=language)
-            .format(
-                tuple_delimiter=DEFAULT_TUPLE_DELIMITER,
-                record_delimiter=DEFAULT_RECORD_DELIMITER,
-                completion_delimiter=DEFAULT_COMPLETION_DELIMITER,
-            )
             for doc in docs_list
         ]
     else:
@@ -72,7 +77,7 @@ async def generate_entity_relationship_examples(
     # save responses to json
     with open("responses.txt", "w") as f:  # noqa: ASYNC230
         for response in responses:
-            f.write(response.output.content)
+            f.write(response.output.content.replace("```json", "").replace("```", ""))
             f.write("----------------------------------------\n")
 
     with open("messages.txt", "w") as f:
@@ -80,4 +85,4 @@ async def generate_entity_relationship_examples(
             f.write(message)
             f.write("----------------------------------------\n")
 
-    return [str(response.output.content) for response in responses]
+    return [response.output.content.replace("```json", "").replace("```", "") for response in responses]

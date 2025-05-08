@@ -164,7 +164,8 @@ async def generate_indexing_prompts(
         entity_types=entity_types,
         docs=doc_list,
         language=language,
-        json_mode=False,  # config.llm.model_supports_json should be used, but these prompts are used in non-json mode by the index engine
+        # json_mode=False,  # config.llm.model_supports_json should be used, but these prompts are used in non-json mode by the index engine
+        json_mode=extract_graph_llm_settings.model_supports_json,  # config.llm.model_supports_json should be used, but these prompts are used in non-json mode by the index engine
     )
 
 
