@@ -156,8 +156,6 @@ def read_indexer_entities(
     nodes_df["community"] = nodes_df["community"].fillna(-1)
     nodes_df["community"] = nodes_df["community"].astype(int)
 
-    print(nodes_df.shape)
-    nodes_df.to_excel("nodes_df.xlsx")
     if community_level is not None:
         nodes_df = _filter_under_community_level(nodes_df, community_level)
     print(nodes_df.shape)
@@ -248,6 +246,10 @@ def embed_community_reports(
 def _filter_under_community_level(
     df: pd.DataFrame, community_level: int
 ) -> pd.DataFrame:
+    # if df.level not exist
+    if "level" not in df.columns:
+        return df
+    
     return cast(
         "pd.DataFrame",
         df[df.level <= community_level],

@@ -75,7 +75,7 @@ async def extract_graph(
             type: openai # the type of llm to use, available options are: openai, azure, openai_chat, azure_openai_chat.  The last two being chat based LLMs.
             api_key: !ENV ${GRAPHRAG_OPENAI_API_KEY} # The api key to use for openai
             model: !ENV ${GRAPHRAG_OPENAI_MODEL:gpt-4-turbo-preview} # The model to use for openai
-            max_tokens: !ENV ${GRAPHRAG_MAX_TOKENS:6000} # The max tokens to use for openai
+            max_completion_tokens: !ENV ${GRAPHRAG_max_completion_tokens:6000} # The max tokens to use for openai
             organization: !ENV ${GRAPHRAG_OPENAI_ORGANIZATION} # The organization to use for openai
 
             # if using azure flavor

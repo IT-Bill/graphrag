@@ -16,7 +16,9 @@ from graphrag.prompt_tune.template.extract_graph import (
 )
 
 EXTRACT_GRAPH_FILENAME = "extract_graph.txt"
-
+DEFAULT_TUPLE_DELIMITER = "<|>"
+DEFAULT_RECORD_DELIMITER = "##"
+DEFAULT_COMPLETION_DELIMITER = "<|COMPLETE|>"
 
 def create_extract_graph_prompt(
     entity_types: str | list[str] | None,
@@ -48,11 +50,17 @@ def create_extract_graph_prompt(
     -------
     - str: The entity extraction prompt
     """
+    # prompt = (
+    #     (GRAPH_EXTRACTION_JSON_PROMPT if json_mode else GRAPH_EXTRACTION_PROMPT)
+    #     if entity_types
+    #     else UNTYPED_GRAPH_EXTRACTION_PROMPT
+    # )
     prompt = (
-        (GRAPH_EXTRACTION_JSON_PROMPT if json_mode else GRAPH_EXTRACTION_PROMPT)
+        (GRAPH_EXTRACTION_JSON_PROMPT)
         if entity_types
         else UNTYPED_GRAPH_EXTRACTION_PROMPT
     )
+    
     if isinstance(entity_types, list):
         entity_types = ", ".join(map(str, entity_types))
 

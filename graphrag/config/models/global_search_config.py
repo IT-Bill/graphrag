@@ -39,21 +39,21 @@ class GlobalSearchConfig(BaseModel):
         description="The number of completions to generate.",
         default=graphrag_config_defaults.global_search.n,
     )
-    max_tokens: int = Field(
+    max_completion_tokens: int = Field(
         description="The maximum context size in tokens.",
-        default=graphrag_config_defaults.global_search.max_tokens,
+        default=graphrag_config_defaults.global_search.max_completion_tokens,
     )
-    data_max_tokens: int = Field(
+    data_max_completion_tokens: int = Field(
         description="The data llm maximum tokens.",
-        default=graphrag_config_defaults.global_search.data_max_tokens,
+        default=graphrag_config_defaults.global_search.data_max_completion_tokens,
     )
-    map_max_tokens: int = Field(
+    map_max_completion_tokens: int = Field(
         description="The map llm maximum tokens.",
-        default=graphrag_config_defaults.global_search.map_max_tokens,
+        default=graphrag_config_defaults.global_search.map_max_completion_tokens,
     )
-    reduce_max_tokens: int = Field(
+    reduce_max_completion_tokens: int = Field(
         description="The reduce llm maximum tokens.",
-        default=graphrag_config_defaults.global_search.reduce_max_tokens,
+        default=graphrag_config_defaults.global_search.reduce_max_completion_tokens,
     )
     concurrency: int = Field(
         description="The number of concurrent requests.",

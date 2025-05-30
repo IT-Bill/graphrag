@@ -17,9 +17,9 @@ class TextEmbeddingConfig(BaseModel):
         description="The batch size to use.",
         default=graphrag_config_defaults.embed_text.batch_size,
     )
-    batch_max_tokens: int = Field(
+    batch_max_completion_tokens: int = Field(
         description="The batch max tokens to use.",
-        default=graphrag_config_defaults.embed_text.batch_max_tokens,
+        default=graphrag_config_defaults.embed_text.batch_max_completion_tokens,
     )
     target: TextEmbeddingTarget = Field(
         description="The target to use. 'all', 'required', 'selected', or 'none'.",
@@ -48,10 +48,17 @@ class TextEmbeddingConfig(BaseModel):
             TextEmbedStrategyType,
         )
 
-        return self.strategy or {
-            "type": TextEmbedStrategyType.openai,
+        # return self.strategy or {
+        #     "type": TextEmbedStrategyType.openai,
+        #     "llm": model_config.model_dump(),
+        #     "num_threads": model_config.concurrent_requests,
+        #     "batch_size": self.batch_size,
+        #     "batch_max_completion_tokens": self.batch_max_completion_tokens,
+        # }
+        return {
+            "type": TextEmbedStrategyType.gemini,
             "llm": model_config.model_dump(),
             "num_threads": model_config.concurrent_requests,
             "batch_size": self.batch_size,
-            "batch_max_tokens": self.batch_max_tokens,
+            "batch_max_completion_tokens": self.batch_max_completion_tokens,
         }

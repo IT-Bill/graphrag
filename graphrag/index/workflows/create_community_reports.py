@@ -56,21 +56,21 @@ async def run_workflow(
         config.root_dir, community_reports_llm_settings
     )
 
-    output = await create_community_reports(
-        edges_input=edges,
-        entities=entities,
-        communities=communities,
-        claims_input=claims,
-        callbacks=context.callbacks,
-        cache=context.cache,
-        summarization_strategy=summarization_strategy,
-        async_mode=async_mode,
-        num_threads=num_threads,
-    )
+    # output = await create_community_reports(
+    #     edges_input=edges,
+    #     entities=entities,
+    #     communities=communities,
+    #     claims_input=claims,
+    #     callbacks=context.callbacks,
+    #     cache=context.cache,
+    #     summarization_strategy=summarization_strategy,
+    #     async_mode=async_mode,
+    #     num_threads=num_threads,
+    # )
 
-    await write_table_to_storage(output, "community_reports", context.storage)
+    await write_table_to_storage(pd.DataFrame(), "community_reports", context.storage)
 
-    return WorkflowFunctionOutput(result=output)
+    return WorkflowFunctionOutput(result=pd.DataFrame())
 
 
 async def create_community_reports(

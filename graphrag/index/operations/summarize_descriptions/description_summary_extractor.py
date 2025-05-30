@@ -17,6 +17,7 @@ DEFAULT_MAX_INPUT_TOKENS = 4_000
 DEFAULT_MAX_SUMMARY_LENGTH = 500
 
 
+
 @dataclass
 class SummarizationResult:
     """Unipartite graph extraction result class definition."""
@@ -133,7 +134,7 @@ class SummarizeExtractor:
                 ),
             }),
             name="summarize",
-            model_parameters={"max_tokens": self._max_summary_length},
+            model_parameters={"max_completion_tokens": self._max_summary_length},
         )
         # Calculate result
         return str(response.output.content)

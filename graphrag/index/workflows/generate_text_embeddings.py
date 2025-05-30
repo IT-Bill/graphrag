@@ -39,9 +39,9 @@ async def run_workflow(
     relationships = await load_table_from_storage("relationships", context.storage)
     text_units = await load_table_from_storage("text_units", context.storage)
     entities = await load_table_from_storage("entities", context.storage)
-    community_reports = await load_table_from_storage(
-        "community_reports", context.storage
-    )
+    # community_reports = await load_table_from_storage(
+    #     "community_reports", context.storage
+    # )
 
     embedded_fields = get_embedded_fields(config)
     text_embed = get_embedding_settings(config)
@@ -51,7 +51,7 @@ async def run_workflow(
         relationships=relationships,
         text_units=text_units,
         entities=entities,
-        community_reports=community_reports,
+        community_reports=None,
         callbacks=context.callbacks,
         cache=context.cache,
         text_embed_config=text_embed,
@@ -152,6 +152,9 @@ async def _run_and_snapshot_embeddings(
     text_embed_config: dict,
 ) -> pd.DataFrame:
     """All the steps to generate single embedding."""
+    if data is None or data.empty:
+        return pd.DataFrame(columns=["id", "embedding"])
+    
     data["embedding"] = await embed_text(
         input=data,
         callbacks=callbacks,

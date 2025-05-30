@@ -55,11 +55,11 @@ class LocalSearchConfig(BaseModel):
         description="The number of completions to generate.",
         default=graphrag_config_defaults.local_search.n,
     )
-    max_tokens: int = Field(
+    max_completion_tokens: int = Field(
         description="The maximum tokens.",
-        default=graphrag_config_defaults.local_search.max_tokens,
+        default=graphrag_config_defaults.local_search.max_completion_tokens,
     )
-    llm_max_tokens: int = Field(
+    llm_max_completion_tokens: int = Field(
         description="The LLM maximum tokens.",
-        default=graphrag_config_defaults.local_search.llm_max_tokens,
+        default=graphrag_config_defaults.local_search.llm_max_completion_tokens,
     )

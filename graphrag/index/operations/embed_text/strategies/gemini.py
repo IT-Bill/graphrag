@@ -3,9 +3,11 @@
 
 """A module containing run method definition."""
 
+import os
 import asyncio
 import logging
 from typing import Any
+from time import sleep
 
 import numpy as np
 
@@ -18,6 +20,9 @@ from graphrag.index.utils.is_null import is_null
 from graphrag.language_model.manager import ModelManager
 from graphrag.language_model.protocol.base import EmbeddingModel
 from graphrag.logger.progress import ProgressTicker, progress_ticker
+
+from google import genai
+import litellm
 
 log = logging.getLogger(__name__)
 
@@ -37,13 +42,7 @@ async def run(
     llm_config = args["llm"]
     llm_config = LanguageModelConfig(**args["llm"])
     splitter = _get_splitter(llm_config, batch_max_completion_tokens)
-    model = ModelManager().get_or_create_embedding_model(
-        name="text_embedding",
-        model_type=llm_config.type,
-        config=llm_config,
-        callbacks=callbacks,
-        cache=cache,
-    )
+    model = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
     semaphore: asyncio.Semaphore = asyncio.Semaphore(args.get("num_threads", 4))
 
     # Break up the input texts. The sizes here indicate how many snippets are in each input text
@@ -81,21 +80,24 @@ def _get_splitter(
 
 
 async def _execute(
-    model: EmbeddingModel,
+    model: genai.Client,
     chunks: list[list[str]],
     tick: ProgressTicker,
     semaphore: asyncio.Semaphore,
 ) -> list[list[float]]:
-    async def embed(chunk: list[str]):
-        async with semaphore:
-            chunk_embeddings = await model.aembed_batch(chunk)
-            result = np.array(chunk_embeddings)
-            tick(1)
-        return result
-
-    futures = [embed(chunk) for chunk in chunks]
-    results = await asyncio.gather(*futures)
-    # merge results in a single list of lists (reduce the collect dimension)
+    
+    results = []
+    for chunk in chunks:
+        chunk_embeddings = [
+            embedding.values
+            for embedding in model.models.embed_content(
+                model="text-embedding-004", contents=chunk
+            ).embeddings
+        ]
+        result = np.array(chunk_embeddings)
+        results.append(result)
+        tick(1)
+    
     return [item for sublist in results for item in sublist]
 
 

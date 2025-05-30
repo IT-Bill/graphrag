@@ -54,12 +54,12 @@ def _create_openai_config(config: LanguageModelConfig, azure: bool) -> OpenAICon
         JsonStrategy.VALID if config.model_supports_json else JsonStrategy.LOOSE
     )
     chat_parameters = OpenAIChatParameters(
-        frequency_penalty=config.frequency_penalty,
+        # frequency_penalty=config.frequency_penalty,
         presence_penalty=config.presence_penalty,
         top_p=config.top_p,
-        max_tokens=config.max_tokens,
+        # max_completion_tokens=config.max_completion_tokens,
         n=config.n,
-        temperature=config.temperature,
+        # temperature=config.temperature,
     )
 
     if azure:

@@ -23,7 +23,7 @@ from graphrag.query.llm.text_utils import num_tokens
 from graphrag.query.structured_search.base import BaseSearch, SearchResult
 
 DEFAULT_LLM_PARAMS = {
-    "max_tokens": 1500,
+    "max_completion_tokens": 1500,
     "temperature": 0.0,
 }
 
@@ -163,6 +163,7 @@ class LocalSearch(BaseSearch[LocalContextBuilder]):
         with open("output/context.txt", "w") as f:
             f.write(str(context_result.context_chunks))
         
+        del self.model_params["temperature"]
         async for response in self.model.achat_stream(
             prompt=query,
             history=history_messages,

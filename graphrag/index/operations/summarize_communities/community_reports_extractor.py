@@ -82,7 +82,7 @@ class CommunityReportsExtractor:
                 json=True,  # Leaving this as True to avoid creating new cache entries
                 name="create_community_report",
                 json_model=CommunityReportResponse,  # A model is required when using json mode
-                model_parameters={"max_tokens": self._max_report_length},
+                model_parameters={"max_completion_tokens": self._max_report_length},
             )
 
             output = response.parsed_response

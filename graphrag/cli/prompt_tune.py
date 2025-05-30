@@ -30,7 +30,7 @@ async def prompt_tune(
     logger: LoggerType,
     selection_method: api.DocSelectionType,
     limit: int,
-    max_tokens: int,
+    max_completion_tokens: int,
     chunk_size: int,
     overlap: int,
     language: str | None,
@@ -51,7 +51,7 @@ async def prompt_tune(
     - logger: The logger to use.
     - selection_method: The chunk selection method.
     - limit: The limit of chunks to load.
-    - max_tokens: The maximum number of tokens to use on entity extraction prompts.
+    - max_completion_tokens: The maximum number of tokens to use on entity extraction prompts.
     - chunk_size: The chunk token size to use.
     - language: The language to use for the prompts.
     - discover_entity_types: Generate entity types.
@@ -94,7 +94,7 @@ async def prompt_tune(
         selection_method=selection_method,
         domain=domain,
         language=language,
-        max_tokens=max_tokens,
+        max_completion_tokens=max_completion_tokens,
         discover_entity_types=discover_entity_types,
         min_examples_required=min_examples_required,
         n_subset_max=n_subset_max,

@@ -34,12 +34,12 @@ from graphrag.query.llm.text_utils import num_tokens, try_parse_json_object
 from graphrag.query.structured_search.base import BaseSearch, SearchResult
 
 DEFAULT_MAP_LLM_PARAMS = {
-    "max_tokens": 1000,
+    "max_completion_tokens": 1000,
     "temperature": 0.0,
 }
 
 DEFAULT_REDUCE_LLM_PARAMS = {
-    "max_tokens": 2000,
+    "max_completion_tokens": 2000,
     "temperature": 0.0,
 }
 
