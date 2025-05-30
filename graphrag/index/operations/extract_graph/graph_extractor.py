@@ -19,6 +19,7 @@ from graphrag.index.typing.error_handler import ErrorHandlerFn
 from graphrag.index.utils.string import clean_str
 from graphrag.language_model.protocol.base import ChatModel
 from graphrag.prompts.index.extract_graph import (
+    CONTINUE_PROMPT_JSON,
     CONTINUE_PROMPT,
     ENTITY_CONTINUE_PROMPT,
     LOOP_PROMPT,
@@ -133,7 +134,7 @@ class GraphExtractor:
         for doc_index, text in enumerate(texts):
             try:
                 # Invoke the entity extraction
-                result = await self._process_document(text, prompt_variables)
+                result = await self._process_document_plain(text, prompt_variables)
                 source_doc_map[doc_index] = text
                 all_records[doc_index] = result
             except Exception as e:
@@ -147,7 +148,7 @@ class GraphExtractor:
                     },
                 )
         
-        output = await self._process_results_json(
+        output = await self._process_results_plain(
             all_records,
             # prompt_variables.get(self._tuple_delimiter_key, DEFAULT_TUPLE_DELIMITER),
             # prompt_variables.get(self._record_delimiter_key, DEFAULT_RECORD_DELIMITER),
@@ -158,7 +159,7 @@ class GraphExtractor:
             source_docs=source_doc_map,
         )
 
-    async def _process_document(
+    async def _process_document_json(
         self, text: str, prompt_variables: dict[str, str]
     ) -> str:
         # response_entity = await self._model.achat(
@@ -203,7 +204,7 @@ class GraphExtractor:
         # Repeat to ensure we maximize entity count
         for i in range(self._max_gleanings):
             response = await self._model.achat(
-                CONTINUE_PROMPT.format(
+                CONTINUE_PROMPT_JSON.format(
                     previous_entities_and_relationships=results,
                     input_text=text,
                 ),
@@ -255,6 +256,7 @@ class GraphExtractor:
 
         # Repeat to ensure we maximize entity count
         for i in range(self._max_gleanings):
+            
             new_response = await self._model.achat(
                 CONTINUE_PROMPT.format(
                     previous_entities_and_relationships=results,

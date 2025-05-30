@@ -385,13 +385,52 @@ output:
 """
 
 
-CONTINUE_PROMPT = '''
+CONTINUE_PROMPT_JSON = '''
 Goal
 """
 Given a document, output all entities with their types and descriptions.
 And output all relationships between those entities.
 Some entities and relationships were missed in the last extraction.
 Remember to only emit entities and relationships that match any of the previously entities and relationships.
+Output the results in JSON format.
+
+"""
+Previous entities and relationships
+"""
+{previous_entities_and_relationships}
+"""
+
+Document
+"""
+{input_text}
+"""
+
+Output:
+'''
+
+CONTINUE_PROMPT = '''
+Goal
+"""
+Given a document, output all entities with their types and descriptions.
+And output all relationships between those entities.
+Some entities and relationships were missed in the last extraction.
+Remember to only output entities and relationships that match any of the previously entities and relationships.
+Output in the desired format, with blank lines separating distinct entities and relationships.
+"""
+
+Desired format:
+"""
+entities:
+<name>
+<type>
+<description>
+
+relationships:
+<source_entity_name>
+<source_entity_type>
+<target_entity_name>
+<target_entity_type>
+<relationship_description>
 """
 
 Previous entities and relationships
