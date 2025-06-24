@@ -28,6 +28,8 @@ from graphrag.prompts.index.extract_graph import (
     GRAPH_EXTRACTION_RELATIONSHIP_PROMPT
 )
 
+from . import my_extraction_result
+
 DEFAULT_TUPLE_DELIMITER = "<|>"
 DEFAULT_RECORD_DELIMITER = "##"
 DEFAULT_COMPLETION_DELIMITER = "<|COMPLETE|>"
@@ -131,64 +133,174 @@ class GraphExtractor:
             ),
         }
 
-        for doc_index, text in enumerate(texts):
-            try:
-                # Invoke the entity extraction
-                result = await self._process_document_plain(text, prompt_variables)
-                source_doc_map[doc_index] = text
-                all_records[doc_index] = result
-            except Exception as e:
-                log.exception("error extracting graph")
-                self._on_error(
-                    e,
-                    traceback.format_exc(),
-                    {
-                        "doc_index": doc_index,
-                        "text": text,
-                    },
-                )
+        # for doc_index, text in enumerate(texts):
+        #     try:
+        #         # Invoke the entity extraction
+        #         result = await self._process_document(text, prompt_variables)
+        #         source_doc_map[doc_index] = text
+        #         all_records[doc_index] = result
+        #     except Exception as e:
+        #         log.exception("error extracting graph")
+        #         self._on_error(
+        #             e,
+        #             traceback.format_exc(),
+        #             {
+        #                 "doc_index": doc_index,
+        #                 "text": text,
+        #             },
+        #         )
         
-        output = await self._process_results_plain(
-            all_records,
-            # prompt_variables.get(self._tuple_delimiter_key, DEFAULT_TUPLE_DELIMITER),
-            # prompt_variables.get(self._record_delimiter_key, DEFAULT_RECORD_DELIMITER),
+        # output = await self._process_results_plain(
+        #     all_records,
+        # )
+        
+        
+        
+        all_extraction_results = {}
+        for doc_index, text in enumerate(texts):
+            max_retries = 3
+            retry_count = 0
+            
+            while retry_count < max_retries:
+            
+                try:
+                    result = await self._process_document_chunk(text, retry_count)
+                    all_extraction_results[doc_index] = result
+                    break  # ! Success, exit retry loop
+                except Exception as e:
+                    retry_count += 1
+                    log.warning(
+                        f"Error extracting graph for document {doc_index}, retrying ({retry_count}/{max_retries})"
+                    )
+                    if retry_count >= max_retries:
+                        log.exception("error extracting graph")
+                        self._on_error(
+                            e,
+                            traceback.format_exc(),
+                            {
+                                "doc_index": doc_index,
+                                "text": text,
+                            },
+                        )
+                        break
+        output = await self._process_extraction_result(
+            all_extraction_results,
         )
+        
 
         return GraphExtractionResult(
             output=output,
             source_docs=source_doc_map,
         )
 
+    async def _process_document_chunk(
+        self, text: str, retry_count: int
+    ) -> my_extraction_result.ExtractResult:
+        extract_entity_prompt_template = '''\
+You are an expert at extracting high-level, chunk-aware entities from documents.  
+
+1. Chunk definition  
+A chunk is any coherent semantic unit—e.g. a paragraph separated by blank lines, a bullet/list item, an inline list (semicolons or commas), or a topic shift within a paragraph. Treat each chunk as one atomic description block.  
+
+2. Extraction rules  
+If a chunk describes an entity, copy it verbatim as that entity’s description.  
+If the same entity spans multiple chunks, merge them by concatenating each chunk’s text (verbatim).  
+If the merged description exceeds 300 words, output two entries: A “summary” entity (≤50 words) capturing the essence. One or more “detail” entities, each using a merged chunk verbatim.  
+
+3. Output format (blank line between entities):  
+<name>
+<type>
+<description>
+
+Document:  
+{input_text}'''
+        
+        extract_graph_prompt_template = '''\
+Given a JSON array of entities, output all child entities and all relationships between original and those entities.
+You need to generate relationships between each child entity and each parent entity if you generate child entities.
+Output in the following format, with blank lines separating distinct entities and relationships.
+"""
+entities:
+<name>
+<type>
+<description>
+
+relationships:
+<source_entity_name>
+<source_entity_type>
+<target_entity_name>
+<target_entity_type>
+<relationship_description>
+"""
+
+array of entities:
+{entities}'''
+        
+        response = await self._model.achat(
+            extract_entity_prompt_template.format(
+                input_text=text,
+            ),
+            name=f"entity-chunk-{retry_count}",
+        )
+        
+        entities = my_extraction_result.parse_entities(response.output.content).entities
+        
+        if not entities:
+            log.warning("No entities extracted from the document chunk.")
+        
+        response = await self._model.achat(
+            extract_graph_prompt_template.format(
+                entities=[e.to_dict() for e in entities],
+            ),
+            name=f"graph-from-entity-chunk-{retry_count}",
+        )
+        
+        graph = my_extraction_result.parse_graph(response.output.content)
+        graph.entities.extend(entities)
+
+        return graph
+
+
+    async def _process_document_plain(
+        self, text: str, prompt_variables: dict[str, str]
+    ) -> str:
+        response = await self._model.achat(
+            self._extraction_prompt.format(**{
+                **prompt_variables,
+                self._input_text_key: text,
+            }),
+            # json=True,
+        )
+        results = response.output.content.replace("```", "").replace("\"\"\"", "") or ""
+        results_entity = results.split("entities:")[1].split("relationships:")[0]
+        results_relationship = results.split("relationships:")[1]
+
+        # Repeat to ensure we maximize entity count
+        for i in range(self._max_gleanings):
+            
+            new_response = await self._model.achat(
+                CONTINUE_PROMPT.format(
+                    previous_entities_and_relationships=results,
+                    input_text=text,
+                ),
+                name=f"extract-continuation-{i}",
+                # history=response.history,
+                # json=True,
+            )
+            
+            new_results = new_response.output.content.replace("```", "").replace("\"\"\"", "") or ""
+            new_results_entity = new_results.split("entities:")[1].split("relationships:")[0]
+            new_results_relationship = new_results.split("relationships:")[1]
+            
+            results_entity += "\n" + new_results_entity
+            results_relationship += "\n" + new_results_relationship
+            
+        return f"entities: \n{results_entity}\nrelationships: \n{results_relationship}"
+        return results
+
     async def _process_document_json(
         self, text: str, prompt_variables: dict[str, str]
     ) -> str:
-        # response_entity = await self._model.achat(
-        #     self._extraction_entity_prompt.format(**{
-        #         **prompt_variables,
-        #         self._input_text_key: text,
-        #     }),
-        # )
-        # results_entity = response_entity.output.content or ""
-        # for i in range(self._max_gleanings):  # default as 1
-        #     resp = await self._model.achat(
-        #         ENTITY_CONTINUE_PROMPT,
-        #         name=f"extract-continuation-{i}",
-        #         history=response_entity.history,
-        #     )
-            
-        #     results_entity += resp.output.content or ""
-            
-        
-        # response_relationship = await self._model.achat(
-        #     self._extraction_relationship_prompt.format(**{
-        #         **prompt_variables,
-        #         self._input_text_key: text,
-        #         "identified_entities": results_entity,
-        #     }),
-        # )
-        # results_relationship = response_relationship.output.content or ""
-        
-        # results = f"{results_entity}\n{results_relationship}"
         
         response = await self._model.achat(
             self._extraction_prompt.format(**{
@@ -237,45 +349,6 @@ class GraphExtractor:
 
             if response.output.content != "Y":
                 break
-
-        return results
-
-    async def _process_document_plain(
-        self, text: str, prompt_variables: dict[str, str]
-    ) -> str:
-        response = await self._model.achat(
-            self._extraction_prompt.format(**{
-                **prompt_variables,
-                self._input_text_key: text,
-            }),
-            # json=True,
-        )
-        results = response.output.content.replace("```", "").replace("\"\"\"", "") or ""
-        results_entity = results.split("entities:")[1].split("relationships:")[0]
-        results_relationship = results.split("relationships:")[1]
-
-        # Repeat to ensure we maximize entity count
-        for i in range(self._max_gleanings):
-            
-            new_response = await self._model.achat(
-                CONTINUE_PROMPT.format(
-                    previous_entities_and_relationships=results,
-                    input_text=text,
-                ),
-                name=f"extract-continuation-{i}",
-                # history=response.history,
-                # json=True,
-            )
-            
-            new_results = new_response.output.content.replace("```", "").replace("\"\"\"", "") or ""
-            new_results_entity = new_results.split("entities:")[1].split("relationships:")[0]
-            new_results_relationship = new_results.split("relationships:")[1]
-            
-            results_entity += "\n" + new_results_entity
-            results_relationship += "\n" + new_results_relationship
-            
-        return f"entities: \n{results_entity}\nrelationships: \n{results_relationship}"
-
 
     async def _process_results(
         self,
@@ -554,7 +627,7 @@ class GraphExtractor:
                 for i in range(0, len(entity_lines), 3):
                     entity_name = clean_str(entity_lines[i].upper())
                     entity_type = clean_str(entity_lines[i + 1].upper())
-                    entity_description = clean_str(entity_lines[i + 2].upper())
+                    entity_description = clean_str(entity_lines[i + 2])
                     entity_identifier = f"{entity_name}...{entity_type}"
                     
                     if entity_identifier in graph.nodes():
@@ -646,6 +719,101 @@ class GraphExtractor:
                         source_id=edge_source_id,
                     )
         
+        return graph
+
+    async def _process_extraction_result(
+        self,
+        extraction_results: dict[int, my_extraction_result.ExtractResult]
+    ) -> nx.Graph:
+        """Process the extraction result to create a graph."""
+        graph = nx.Graph()
+        
+        for doc_index, extraction_result in extraction_results.items():
+            # Add entities to the graph
+            for entity in extraction_result.entities:
+                entity_identifier = f"{entity.name}...{entity.type}"
+                if entity_identifier in graph.nodes():
+                    node = graph.nodes[entity_identifier]
+
+                    node["description"] = "\n".join(
+                        list({
+                            *_unpack_descriptions(node),
+                            entity.description,
+                        })
+                    )
+                    node["source_id"] = ", ".join(
+                        list({
+                            *_unpack_source_ids(node),
+                            str(doc_index),
+                        })
+                    )
+                    # ! Overwrite !
+                    node["type"] = (
+                        entity.type if entity.type != "" else node["type"]
+                    )
+                    
+                else:
+                    graph.add_node(
+                        entity_identifier,
+                        type=entity.type,
+                        description=entity.description,
+                        source_id=str(doc_index),
+                    )
+
+            # Add relationships to the graph
+            for relationship in extraction_result.relationships:
+                source = f"{relationship.source.name}...{relationship.source.type}"
+                target = f"{relationship.target.name}...{relationship.target.type}"
+                edge_description = relationship.description
+                edge_source_id = str(doc_index)
+                
+                # Handle weight if present, default to 1.0
+                weight = 1.0
+                
+                # ! Justification for bastard.
+                # Add source node if not exists
+                if source not in graph.nodes():
+                    graph.add_node(
+                        source,
+                        type=relationship.source.type,
+                        description="",
+                        source_id=edge_source_id,
+                    )
+                
+                # Add target node if not exists
+                if target not in graph.nodes():
+                    graph.add_node(
+                        target,
+                        type=relationship.target.type,
+                        description="",
+                        source_id=edge_source_id,
+                    )
+                
+                # Update existing edge or add new one
+                if graph.has_edge(source, target):
+                    edge_data = graph.get_edge_data(source, target)
+                    if edge_data is not None:
+                        weight += edge_data["weight"]
+                        if self._join_descriptions:
+                            edge_description = "\n".join(
+                                list({
+                                    *_unpack_descriptions(edge_data),
+                                    edge_description,
+                                })
+                            )
+                        edge_source_id = ", ".join(
+                            list({
+                                *_unpack_source_ids(edge_data),
+                                str(doc_index),
+                            }))
+                graph.add_edge(
+                    source,
+                    target,
+                    weight=weight,
+                    description=edge_description,
+                    source_id=edge_source_id,
+                )
+
         return graph
 
 def _unpack_descriptions(data: Mapping) -> list[str]:

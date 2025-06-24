@@ -107,7 +107,10 @@ class LanguageModelConfig(BaseModel):
             If the model name is not recognized.
         """
         if self.encoding_model.strip() == "":
-            self.encoding_model = tiktoken.encoding_name_for_model(self.model)
+            if self.model.startswith("gpt-4.1"):
+                self.encoding_model = "o200k_base"
+            else:
+                self.encoding_model = tiktoken.encoding_name_for_model(self.model)
 
     max_completion_tokens: int = Field(
         description="The maximum number of tokens to generate.",

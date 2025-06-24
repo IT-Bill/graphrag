@@ -385,6 +385,11 @@ output:
 """
 
 
+CHUNK_EXTRACTION_RELATIONSHIP_PROMPT = """
+
+
+"""
+
 CONTINUE_PROMPT_JSON = '''
 Goal
 """

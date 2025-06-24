@@ -94,7 +94,7 @@ class LocalSearch(BaseSearch[LocalContextBuilder]):
             ]
 
             full_response = ""
-
+            print(history_messages)
             async for response in self.model.achat_stream(
                 prompt=query,
                 history=history_messages,
