@@ -139,6 +139,7 @@ class ChunkStrategyType(str, Enum):
 
     tokens = "tokens"
     sentence = "sentence"
+    custom = "custom"
 
     def __repr__(self):
         """Get a string representation."""

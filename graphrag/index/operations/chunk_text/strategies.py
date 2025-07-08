@@ -67,3 +67,22 @@ def run_sentences(
                 source_doc_indices=[doc_idx],
             )
         tick(1)
+
+
+def run_custom(
+    input: list[str], config: ChunkingConfig, tick: ProgressTicker
+) -> Iterable[TextChunk]:
+    """Chunks text into multiple parts by custom delimiter."""
+    # print(config)
+    # delimiter = config.delimiter
+    # if not delimiter:
+    #     raise ValueError("Delimiter must be provided for custom chunking.")
+    delimiter = "&&&&&" 
+    for doc_idx, text in enumerate(input):
+        chunks = text.split(delimiter)
+        for chunk in chunks:
+            yield TextChunk(
+                text_chunk=chunk.strip(),
+                source_doc_indices=[doc_idx],
+            )
+        tick(1)

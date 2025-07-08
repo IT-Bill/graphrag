@@ -216,10 +216,16 @@ class LocalSearchMixedContext(LocalContextBuilder):
             final_context.append(text_unit_context)
             final_context_data = {**final_context_data, **text_unit_context_data}
 
+        # !!DEBUG
+        # return ContextBuilderResult(
+        #     context_chunks="\n\n".join(final_context),
+        #     context_records=final_context_data,
+        # )
         return ContextBuilderResult(
-            context_chunks="\n\n".join(final_context),
+            context_chunks=text_unit_context,
             context_records=final_context_data,
         )
+        # !!DEBUG
 
     def _build_community_context(
         self,

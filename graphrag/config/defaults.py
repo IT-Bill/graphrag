@@ -72,6 +72,7 @@ class ChunksDefaults:
     overlap: int = 100
     group_by_columns: list[str] = field(default_factory=lambda: ["id"])
     strategy = ChunkStrategyType.tokens
+    delimiter: str | None = None
     encoding_model: str = "cl100k_base"
     prepend_metadata: bool = False
     chunk_size_includes_metadata: bool = False

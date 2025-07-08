@@ -89,6 +89,7 @@ class LocalSearch(BaseSearch[LocalContextBuilder]):
                     context_data=context_result.context_chunks,
                     response_type=self.response_type,
                 )
+                
             history_messages = [
                 {"role": "system", "content": search_prompt},
             ]

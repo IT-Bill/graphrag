@@ -28,6 +28,10 @@ class ChunkingConfig(BaseModel):
         description="The chunking strategy to use.",
         default=graphrag_config_defaults.chunks.strategy,
     )
+    delimiter: str | None = Field(
+        description="The delimiter to use for custom chunking.",
+        default=graphrag_config_defaults.chunks.delimiter,
+    )
     encoding_model: str = Field(
         description="The encoding model to use.",
         default=graphrag_config_defaults.chunks.encoding_model,

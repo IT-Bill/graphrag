@@ -554,7 +554,7 @@ class GraphExtractor:
                 for i in range(0, len(entity_lines), 3):
                     entity_name = clean_str(entity_lines[i].upper())
                     entity_type = clean_str(entity_lines[i + 1].upper())
-                    entity_description = clean_str(entity_lines[i + 2].upper())
+                    entity_description = clean_str(entity_lines[i + 2])
                     entity_identifier = f"{entity_name}...{entity_type}"
                     
                     if entity_identifier in graph.nodes():
@@ -591,8 +591,11 @@ class GraphExtractor:
                     source_name = clean_str(relationship_lines[i].upper())
                     source_type = clean_str(relationship_lines[i + 1].upper())
                     target_name = clean_str(relationship_lines[i + 2].upper())
-                    target_type = clean_str(relationship_lines[i + 3].upper())
-                    edge_description = clean_str(relationship_lines[i + 4].upper())
+                    target_type = clean_str(relationship_lines[i + 3].upper())  
+                    
+                    # !Redundant upper() call will make number of tokens larger (1.5x)
+                    # edge_description = clean_str(relationship_lines[i + 4].upper())
+                    edge_description = clean_str(relationship_lines[i + 4])
                     
                     source = f"{source_name}...{source_type}"
                     target = f"{target_name}...{target_type}"
